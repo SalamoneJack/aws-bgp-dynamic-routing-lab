@@ -89,6 +89,7 @@ resource "aws_lambda_function" "bgp_status" {
   handler          = "bgp_status.lambda_handler"
   runtime          = "python3.12"
   timeout          = 30
+  reserved_concurrent_executions = 5
 
   environment {
     variables = {
@@ -104,7 +105,10 @@ resource "aws_lambda_function_url" "bgp_status" {
   authorization_type = "NONE"
 
   cors {
-    allow_origins = ["https://jacksalamone.com"]
+    allow_origins = [
+      "https://jacksalamone.com",
+      "https://main.doazuavx82vh4.amplifyapp.com",
+    ]
     allow_methods = ["GET"]
     max_age       = 300
   }
