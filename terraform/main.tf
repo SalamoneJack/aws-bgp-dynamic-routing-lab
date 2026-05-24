@@ -131,9 +131,10 @@ resource "aws_eip" "cloud_router" {
 }
 
 resource "aws_instance" "cloud_router" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = var.instance_type
-  key_name      = var.key_pair
+  ami                  = data.aws_ami.ubuntu.id
+  instance_type        = var.instance_type
+  key_name             = var.key_pair
+  iam_instance_profile = aws_iam_instance_profile.cloud_router_ssm.name
 
   network_interface {
     network_interface_id = aws_network_interface.cloud_router.id

@@ -1,28 +1,47 @@
 # FRR BGP config for the CLOUD router (AS 65001)
 # Place at: /etc/frr/frr.conf
-# Replace <CLOUD_PRIVATE_IP> and <ONPREM_PRIVATE_IP> with values from terraform output bgp_config_summary
+# Replace 10.10.1.10 and 10.20.1.10 with values from:
+#   terraform output bgp_config_summary
 
 frr version 8.x
 frr defaults traditional
 hostname cloud-router
 log syslog informational
 !
+! ── Route-maps ────────────────────────────────────────────────────────────────
+!
+! Tag all prefixes leaving AS 65001 with community 65001:100
+route-map CLOUD-OUT permit 10
+ set community 65001:100
+!
+! Inbound from AS 65002: prefer onprem routes over any alternate paths
+route-map ONPREM-IN permit 10
+ set local-preference 200
+!
+! ── BGP ───────────────────────────────────────────────────────────────────────
+!
 router bgp 65001
- bgp router-id <CLOUD_PRIVATE_IP>
+ bgp router-id 10.10.1.10
+ bgp log-neighbor-changes
  !
- ! Disable strict eBGP policy enforcement (for lab — in production use explicit prefix-lists)
  no bgp ebgp-requires-policy
  !
- ! Define the eBGP peer (onprem-sim router, across the IPSec tunnel)
- neighbor <ONPREM_PRIVATE_IP> remote-as 65002
- neighbor <ONPREM_PRIVATE_IP> description onprem-sim-router
+ neighbor 10.20.1.10 remote-as 65002
+ neighbor 10.20.1.10 description onprem-sim-router
+ neighbor 10.20.1.10 ebgp-multihop 2
+ neighbor 10.20.1.10 update-source eth0
+ neighbor 10.20.1.10 timers connect 10
  !
  address-family ipv4 unicast
-  ! Advertise the Cloud VPC CIDR into BGP
+  ! Advertise VPC CIDR and primary subnet
   network 10.10.0.0/16
+  network 10.10.1.0/24
   !
-  ! Activate the neighbor in IPv4 unicast
-  neighbor <ONPREM_PRIVATE_IP> activate
+  neighbor 10.20.1.10 activate
+  neighbor 10.20.1.10 soft-reconfiguration inbound
+  neighbor 10.20.1.10 route-map CLOUD-OUT out
+  neighbor 10.20.1.10 route-map ONPREM-IN in
+  neighbor 10.20.1.10 send-community
  exit-address-family
 !
 line vty

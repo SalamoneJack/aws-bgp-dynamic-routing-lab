@@ -1,25 +1,47 @@
 # FRR BGP config for the ONPREM-SIM router (AS 65002)
 # Place at: /etc/frr/frr.conf
-# Replace <CLOUD_PRIVATE_IP> and <ONPREM_PRIVATE_IP> with values from terraform output bgp_config_summary
+# Replace 10.10.1.10 and 10.20.1.10 with values from:
+#   terraform output bgp_config_summary
 
 frr version 8.x
 frr defaults traditional
 hostname onprem-router
 log syslog informational
 !
+! ── Route-maps ────────────────────────────────────────────────────────────────
+!
+! Tag all prefixes leaving AS 65002 with community 65002:100
+route-map ONPREM-OUT permit 10
+ set community 65002:100
+!
+! Inbound from AS 65001: prefer cloud routes over any alternate paths
+route-map CLOUD-IN permit 10
+ set local-preference 200
+!
+! ── BGP ───────────────────────────────────────────────────────────────────────
+!
 router bgp 65002
- bgp router-id <ONPREM_PRIVATE_IP>
+ bgp router-id 10.20.1.10
+ bgp log-neighbor-changes
  !
  no bgp ebgp-requires-policy
  !
- neighbor <CLOUD_PRIVATE_IP> remote-as 65001
- neighbor <CLOUD_PRIVATE_IP> description cloud-router
+ neighbor 10.10.1.10 remote-as 65001
+ neighbor 10.10.1.10 description cloud-router
+ neighbor 10.10.1.10 ebgp-multihop 2
+ neighbor 10.10.1.10 update-source eth0
+ neighbor 10.10.1.10 timers connect 10
  !
  address-family ipv4 unicast
-  ! Advertise the OnPrem-Sim VPC CIDR into BGP
+  ! Advertise VPC CIDR and primary subnet
   network 10.20.0.0/16
+  network 10.20.1.0/24
   !
-  neighbor <CLOUD_PRIVATE_IP> activate
+  neighbor 10.10.1.10 activate
+  neighbor 10.10.1.10 soft-reconfiguration inbound
+  neighbor 10.10.1.10 route-map ONPREM-OUT out
+  neighbor 10.10.1.10 route-map CLOUD-IN in
+  neighbor 10.10.1.10 send-community
  exit-address-family
 !
 line vty
