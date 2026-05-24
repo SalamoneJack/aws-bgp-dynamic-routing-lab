@@ -1,0 +1,29 @@
+# FRR BGP config for the CLOUD router (AS 65001)
+# Place at: /etc/frr/frr.conf
+# Replace <CLOUD_PRIVATE_IP> and <ONPREM_PRIVATE_IP> with values from terraform output bgp_config_summary
+
+frr version 8.x
+frr defaults traditional
+hostname cloud-router
+log syslog informational
+!
+router bgp 65001
+ bgp router-id <CLOUD_PRIVATE_IP>
+ !
+ ! Disable strict eBGP policy enforcement (for lab — in production use explicit prefix-lists)
+ no bgp ebgp-requires-policy
+ !
+ ! Define the eBGP peer (onprem-sim router, across the IPSec tunnel)
+ neighbor <ONPREM_PRIVATE_IP> remote-as 65002
+ neighbor <ONPREM_PRIVATE_IP> description onprem-sim-router
+ !
+ address-family ipv4 unicast
+  ! Advertise the Cloud VPC CIDR into BGP
+  network 10.10.0.0/16
+  !
+  ! Activate the neighbor in IPv4 unicast
+  neighbor <ONPREM_PRIVATE_IP> activate
+ exit-address-family
+!
+line vty
+!

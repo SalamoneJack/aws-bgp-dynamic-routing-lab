@@ -1,0 +1,6 @@
+region      = "us-east-1"
+key_pair    = "your-key-pair-name"
+cloud_cidr  = "10.10.0.0/16"
+onprem_cidr = "10.20.0.0/16"
+cloud_asn   = 65001
+onprem_asn  = 65002
