@@ -5,7 +5,10 @@ import os
 
 ssm = boto3.client('ssm')
 
-INSTANCE_ID = os.environ['INSTANCE_ID']
+INSTANCE_IDS = {
+    'cloud':  os.environ['CLOUD_INSTANCE_ID'],
+    'onprem': os.environ['ONPREM_INSTANCE_ID'],
+}
 
 COMMANDS = {
     'bgp-summary': 'vtysh -c "show ip bgp summary"',
@@ -21,7 +24,9 @@ def lambda_handler(event, context):
     if event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS':
         return {'statusCode': 200, 'headers': HEADERS, 'body': ''}
 
-    cmd_key = (event.get('queryStringParameters') or {}).get('cmd', 'bgp-summary')
+    params = event.get('queryStringParameters') or {}
+    cmd_key    = params.get('cmd', 'bgp-summary')
+    router_key = params.get('router', 'cloud')
 
     if cmd_key not in COMMANDS:
         return {
@@ -30,9 +35,11 @@ def lambda_handler(event, context):
             'body': json.dumps({'error': 'invalid command'}),
         }
 
+    instance_id = INSTANCE_IDS.get(router_key, INSTANCE_IDS['cloud'])
+
     try:
         resp = ssm.send_command(
-            InstanceIds=[INSTANCE_ID],
+            InstanceIds=[instance_id],
             DocumentName='AWS-RunShellScript',
             Parameters={'commands': [COMMANDS[cmd_key]]},
         )
@@ -40,7 +47,7 @@ def lambda_handler(event, context):
 
         for _ in range(20):
             time.sleep(1)
-            inv = ssm.get_command_invocation(CommandId=cmd_id, InstanceId=INSTANCE_ID)
+            inv = ssm.get_command_invocation(CommandId=cmd_id, InstanceId=instance_id)
             if inv['Status'] not in ('Pending', 'InProgress', 'Delayed'):
                 break
 
