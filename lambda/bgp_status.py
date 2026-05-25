@@ -14,23 +14,19 @@ COMMANDS = {
     'interfaces':  'vtysh -c "show interface brief"',
 }
 
-CORS_HEADERS = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET',
-    'Content-Type': 'application/json',
-}
+HEADERS = {'Content-Type': 'application/json'}
 
 
 def lambda_handler(event, context):
     if event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS':
-        return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': ''}
+        return {'statusCode': 200, 'headers': HEADERS, 'body': ''}
 
     cmd_key = (event.get('queryStringParameters') or {}).get('cmd', 'bgp-summary')
 
     if cmd_key not in COMMANDS:
         return {
             'statusCode': 400,
-            'headers': CORS_HEADERS,
+            'headers': HEADERS,
             'body': json.dumps({'error': 'invalid command'}),
         }
 
@@ -51,7 +47,7 @@ def lambda_handler(event, context):
         if inv['Status'] == 'Success':
             return {
                 'statusCode': 200,
-                'headers': CORS_HEADERS,
+                'headers': HEADERS,
                 'body': json.dumps({
                     'output': inv['StandardOutputContent'].strip(),
                     'timestamp': time.strftime('%Y-%m-%d %H:%M:%S UTC'),
@@ -64,7 +60,7 @@ def lambda_handler(event, context):
 
     return {
         'statusCode': 200,
-        'headers': CORS_HEADERS,
+        'headers': HEADERS,
         'body': json.dumps({
             'output': 'BGP router unavailable — instance may be stopped.',
             'timestamp': time.strftime('%Y-%m-%d %H:%M:%S UTC'),
