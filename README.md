@@ -6,19 +6,19 @@
 ![FRR](https://img.shields.io/badge/FRR-Free_Range_Routing-blue)
 ![Status](https://img.shields.io/badge/Status-Complete-brightgreen)
 
-BGP dynamic routing over an IPSec tunnel between two AWS VPCs — the same architectural pattern used in AWS Direct Connect and AWS Site-to-Site VPN with BGP. Built with FRR (Free Range Routing) on EC2 instances, configured from scratch. Demonstrates route propagation, BGP path selection, and dynamic failover without touching the AWS managed networking layer.
+BGP dynamic routing over an IPSec tunnel between two AWS VPCs â€” the same architectural pattern used in AWS Direct Connect and AWS Site-to-Site VPN with BGP. Built with FRR (Free Range Routing) on EC2 instances, configured from scratch. Demonstrates route propagation, BGP path selection, and dynamic failover without touching the AWS managed networking layer.
 
 > ### Live in AWS right now
 >
 > BGP session has been ESTABLISHED 24/7 for multiple days between AS 65001 and AS 65002 over an IPSec tunnel. **Query the running routers yourself** via the live terminal widget on [jacksalamone.com](https://jacksalamone.com).
 >
-> ![BGP summary on the live widget — ESTABLISHED 3d20h+](screenshots/live-widget-bgp-summary.png)
+> ![BGP summary on the live widget â€” ESTABLISHED 3d20h+](evidence/live-widget-bgp-summary.png)
 >
-> **Full deployment evidence, terminal captures, and additional screenshots:** [`screenshots/`](screenshots/)
+> **Full deployment evidence, terminal captures, and additional screenshots:** [`evidence/`](evidence/)
 
 ## The Problem
 
-Static routes work in a lab. In production hybrid networks, you need dynamic routing: routes that propagate automatically when new networks are added, paths that reroute around failures, and a protocol that scales to thousands of prefixes without manual maintenance. BGP is that protocol — it's the routing protocol of the internet and the backbone of every enterprise WAN.
+Static routes work in a lab. In production hybrid networks, you need dynamic routing: routes that propagate automatically when new networks are added, paths that reroute around failures, and a protocol that scales to thousands of prefixes without manual maintenance. BGP is that protocol â€” it's the routing protocol of the internet and the backbone of every enterprise WAN.
 
 Most cloud engineers know BGP exists. Almost none have configured it. This lab changes that.
 
@@ -27,28 +27,28 @@ Most cloud engineers know BGP exists. Almost none have configured it. This lab c
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                            AWS Region                               │
-│                                                                     │
-│   ┌──────────────────────────┐    ┌────────────────────────────┐   │
-│   │  Cloud VPC               │    │  OnPrem-Sim VPC            │   │
-│   │  10.10.0.0/16            │    │  10.20.0.0/16              │   │
-│   │  AS 65001                │    │  AS 65002                  │   │
-│   │                          │    │                            │   │
-│   │  ┌──────────────────┐    │    │  ┌──────────────────────┐  │   │
-│   │  │ FRR EC2          │    │    │  │ FRR EC2              │  │   │
-│   │  │ BGP Router ID:   │◄───┼────┼─►│ BGP Router ID:       │  │   │
-│   │  │ 10.10.1.10       │    │    │  │ 10.20.1.10           │  │   │
-│   │  │                  │ IKEv2   │  │                      │  │   │
-│   │  │ Advertises:      │ IPSec   │  │ Advertises:          │  │   │
-│   │  │ 10.10.0.0/16     │    │    │  │ 10.20.0.0/16         │  │   │
-│   │  └──────────────────┘    │    │  └──────────────────────┘  │   │
-│   │                          │    │                            │   │
-│   │  BGP Table:              │    │  BGP Table:                │   │
-│   │  10.10.0.0/16 (local)    │    │  10.20.0.0/16 (local)     │   │
-│   │  10.20.0.0/16 (via BGP)  │    │  10.10.0.0/16 (via BGP)   │   │
-│   └──────────────────────────┘    └────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                            AWS Region                               â”‚
+â”‚                                                                     â”‚
+â”‚   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”‚
+â”‚   â”‚  Cloud VPC               â”‚    â”‚  OnPrem-Sim VPC            â”‚   â”‚
+â”‚   â”‚  10.10.0.0/16            â”‚    â”‚  10.20.0.0/16              â”‚   â”‚
+â”‚   â”‚  AS 65001                â”‚    â”‚  AS 65002                  â”‚   â”‚
+â”‚   â”‚                          â”‚    â”‚                            â”‚   â”‚
+â”‚   â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”    â”‚    â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚   â”‚
+â”‚   â”‚  â”‚ FRR EC2          â”‚    â”‚    â”‚  â”‚ FRR EC2              â”‚  â”‚   â”‚
+â”‚   â”‚  â”‚ BGP Router ID:   â”‚â—„â”€â”€â”€â”¼â”€â”€â”€â”€â”¼â”€â–ºâ”‚ BGP Router ID:       â”‚  â”‚   â”‚
+â”‚   â”‚  â”‚ 10.10.1.10       â”‚    â”‚    â”‚  â”‚ 10.20.1.10           â”‚  â”‚   â”‚
+â”‚   â”‚  â”‚                  â”‚ IKEv2   â”‚  â”‚                      â”‚  â”‚   â”‚
+â”‚   â”‚  â”‚ Advertises:      â”‚ IPSec   â”‚  â”‚ Advertises:          â”‚  â”‚   â”‚
+â”‚   â”‚  â”‚ 10.10.0.0/16     â”‚    â”‚    â”‚  â”‚ 10.20.0.0/16         â”‚  â”‚   â”‚
+â”‚   â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜    â”‚    â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚   â”‚
+â”‚   â”‚                          â”‚    â”‚                            â”‚   â”‚
+â”‚   â”‚  BGP Table:              â”‚    â”‚  BGP Table:                â”‚   â”‚
+â”‚   â”‚  10.10.0.0/16 (local)    â”‚    â”‚  10.20.0.0/16 (local)     â”‚   â”‚
+â”‚   â”‚  10.20.0.0/16 (via BGP)  â”‚    â”‚  10.10.0.0/16 (via BGP)   â”‚   â”‚
+â”‚   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜   â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 *Full diagram: [docs/architecture.png](docs/architecture.png)*
@@ -66,13 +66,13 @@ Most cloud engineers know BGP exists. Almost none have configured it. This lab c
 
 ```
 Application data
-└── TCP/IP
-    └── ESP (IPSec encryption) ← strongSwan encrypts here
-        └── UDP 4500 (NAT-T)
-            └── IP → EIP
+â””â”€â”€ TCP/IP
+    â””â”€â”€ ESP (IPSec encryption) â† strongSwan encrypts here
+        â””â”€â”€ UDP 4500 (NAT-T)
+            â””â”€â”€ IP â†’ EIP
 ```
 
-BGP sessions run over the IPSec tunnel using the private IPs of the tunnel endpoints as neighbor addresses. From BGP's perspective, the neighbors are directly connected — it doesn't see the encryption layer. strongSwan handles the encryption transparently.
+BGP sessions run over the IPSec tunnel using the private IPs of the tunnel endpoints as neighbor addresses. From BGP's perspective, the neighbors are directly connected â€” it doesn't see the encryption layer. strongSwan handles the encryption transparently.
 
 ### BGP Session Establishment
 
@@ -86,15 +86,15 @@ BGP sessions run over the IPSec tunnel using the private IPs of the tunnel endpo
 
 ### Route Advertisement and Propagation
 
-Each FRR instance advertises its local VPC CIDR via BGP `network` statement. When received by the peer, the route installs in the BGP table and is redistributed into the kernel routing table — making it available for forwarding.
+Each FRR instance advertises its local VPC CIDR via BGP `network` statement. When received by the peer, the route installs in the BGP table and is redistributed into the kernel routing table â€” making it available for forwarding.
 
 ```
 # On Cloud FRR: what you see after BGP is established
 show ip bgp
 
    Network          Next Hop            Metric LocPrf Weight Path
-*> 10.10.0.0/16    0.0.0.0                  0         32768 i  ← local
-*> 10.20.0.0/16    10.20.1.10               0             0 65002 i  ← learned via BGP
+*> 10.10.0.0/16    0.0.0.0                  0         32768 i  â† local
+*> 10.20.0.0/16    10.20.1.10               0             0 65002 i  â† learned via BGP
 ```
 
 ### How This Maps to AWS Direct Connect
@@ -111,7 +111,7 @@ AWS Direct Connect uses BGP exactly this way:
 - Terraform >= 1.5
 - AWS CLI configured
 - EC2 key pair
-- Recommended: Complete [aws-hybrid-vpn-lab](https://github.com/SalamoneJack/aws-hybrid-vpn-lab) first — this lab extends it
+- Recommended: Complete [aws-hybrid-vpn-lab](https://github.com/SalamoneJack/aws-hybrid-vpn-lab) first â€” this lab extends it
 
 ## Quick Start
 
@@ -128,7 +128,7 @@ This deploys the same two-VPC IPSec infrastructure from the VPN lab, plus instal
 
 ## BGP Configuration
 
-### Cloud FRR Instance — `/etc/frr/frr.conf`
+### Cloud FRR Instance â€” `/etc/frr/frr.conf`
 
 ```
 frr version 8.x
@@ -148,7 +148,7 @@ router bgp 65001
 !
 ```
 
-### OnPrem-Sim FRR Instance — `/etc/frr/frr.conf`
+### OnPrem-Sim FRR Instance â€” `/etc/frr/frr.conf`
 
 ```
 frr version 8.x
@@ -173,27 +173,27 @@ Enable and start FRR: `sudo systemctl enable frr && sudo systemctl start frr`
 ## Verification
 
 ```bash
-# BGP session state — should show Established
+# BGP session state â€” should show Established
 vtysh -c "show ip bgp summary"
 
-# BGP routing table — should show both networks
+# BGP routing table â€” should show both networks
 vtysh -c "show ip bgp"
 
-# Kernel routing table — should include BGP-learned routes
+# Kernel routing table â€” should include BGP-learned routes
 ip route show
 
 # End-to-end ping across the tunnel
 ping 10.20.1.x
 ```
 
-See `screenshots/` for expected BGP table output.
+See `evidence/` for expected BGP table output.
 
 ## Dynamic Routing Demo: Adding a New Network
 
-Add a new subnet to the OnPrem-Sim VPC and advertise it via BGP — without touching the Cloud VPC's route tables:
+Add a new subnet to the OnPrem-Sim VPC and advertise it via BGP â€” without touching the Cloud VPC's route tables:
 
 ```hcl
-# terraform/main.tf — add a new subnet
+# terraform/main.tf â€” add a new subnet
 resource "aws_subnet" "onprem_extra" {
   vpc_id     = aws_vpc.onprem.id
   cidr_block = "10.20.2.0/24"
@@ -201,7 +201,7 @@ resource "aws_subnet" "onprem_extra" {
 ```
 
 ```
-# On OnPrem FRR — add to bgpd config
+# On OnPrem FRR â€” add to bgpd config
 network 10.20.2.0/24
 ```
 
@@ -218,25 +218,25 @@ The new prefix propagates to Cloud FRR's BGP table automatically. This is the va
 | Redundancy | Single BGP session | Two DX connections, two BGP sessions per VGW |
 | Monitoring | vtysh CLI | CloudWatch DX metrics + BGP state alarms |
 
-**For healthcare/enterprise:** Direct Connect + BGP with MED attributes lets you control primary/backup path selection at the routing protocol level — far more reliable than static routes with health-check failover.
+**For healthcare/enterprise:** Direct Connect + BGP with MED attributes lets you control primary/backup path selection at the routing protocol level â€” far more reliable than static routes with health-check failover.
 
 ## Cost
 
 | Resource | Monthly Cost |
 |----------|-------------|
-| 2× t2.micro EC2 (Free Tier) | $0 |
-| 2× Elastic IPs | $0 |
+| 2Ã— t2.micro EC2 (Free Tier) | $0 |
+| 2Ã— Elastic IPs | $0 |
 | **Total** | **$0** |
 
 ## What I Learned
 
-- BGP runs on top of TCP port 179 — the transport layer handles reliability, which is why BGP itself is relatively simple (no flooding, no complex hello mechanisms)
-- `no bgp ebgp-requires-policy` is a FRR safety valve — in production you'd want explicit prefix-list filtering to control what you accept from eBGP peers
-- The BGP neighbor address must be reachable via the routing table *before* the session establishes — BGP and IGP (or static routes) have a chicken-and-egg dependency that's easy to debug wrong
+- BGP runs on top of TCP port 179 â€” the transport layer handles reliability, which is why BGP itself is relatively simple (no flooding, no complex hello mechanisms)
+- `no bgp ebgp-requires-policy` is a FRR safety valve â€” in production you'd want explicit prefix-list filtering to control what you accept from eBGP peers
+- The BGP neighbor address must be reachable via the routing table *before* the session establishes â€” BGP and IGP (or static routes) have a chicken-and-egg dependency that's easy to debug wrong
 - FRR's `vtysh` CLI is nearly identical to IOS: `show ip bgp summary` is `show ip bgp summary`, `show ip route bgp` is `show ip route bgp`. The mental model transfers directly
 - AWS VGW route propagation is just this: AWS runs FRR (or equivalent), and when you enable propagation, it writes the BGP-learned routes to your route table automatically
 
 ## Related Projects
 
-- [aws-hybrid-vpn-lab](https://github.com/SalamoneJack/aws-hybrid-vpn-lab) — The IPSec foundation this lab builds on
-- [aws-network-monitoring](https://github.com/SalamoneJack/aws-network-monitoring) — Observability layer for this setup
+- [aws-hybrid-vpn-lab](https://github.com/SalamoneJack/aws-hybrid-vpn-lab) â€” The IPSec foundation this lab builds on
+- [aws-network-monitoring](https://github.com/SalamoneJack/aws-network-monitoring) â€” Observability layer for this setup
