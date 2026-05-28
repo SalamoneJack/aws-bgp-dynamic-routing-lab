@@ -70,9 +70,9 @@ A public read-only API (API Gateway -> Lambda -> SSM SendCommand -> `vtysh`) exp
 ```
 Application data
 â””â”€â”€ TCP/IP
-    â””â”€â”€ ESP (IPSec encryption) â† strongSwan encrypts here
+    â””â”€â”€ ESP (IPSec encryption) ← strongSwan encrypts here
         â””â”€â”€ UDP 4500 (NAT-T)
-            â””â”€â”€ IP â†’ EIP
+            â””â”€â”€ IP → EIP
 ```
 
 BGP sessions run over the IPSec tunnel using the private IPs of the tunnel endpoints as neighbor addresses. From BGP's perspective, the neighbors are directly connected — it doesn't see the encryption layer. strongSwan handles the encryption transparently.
@@ -96,8 +96,8 @@ Each FRR instance advertises its local VPC CIDR via BGP `network` statement. Whe
 show ip bgp
 
    Network          Next Hop            Metric LocPrf Weight Path
-*> 10.10.0.0/16    0.0.0.0                  0         32768 i  â† local
-*> 10.20.0.0/16    10.20.1.10               0             0 65002 i  â† learned via BGP
+*> 10.10.0.0/16    0.0.0.0                  0         32768 i  ← local
+*> 10.20.0.0/16    10.20.1.10               0             0 65002 i  ← learned via BGP
 ```
 
 ### How This Maps to AWS Direct Connect
@@ -227,8 +227,8 @@ The new prefix propagates to Cloud FRR's BGP table automatically. This is the va
 
 | Resource | Monthly Cost |
 |----------|-------------|
-| 2Ã— t2.micro EC2 (Free Tier) | $0 |
-| 2Ã— Elastic IPs | $0 |
+| 2× t2.micro EC2 (Free Tier) | $0 |
+| 2× Elastic IPs | $0 |
 | **Total** | **$0** |
 
 ## What I Learned
