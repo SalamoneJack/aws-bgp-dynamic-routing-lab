@@ -8,6 +8,14 @@
 
 BGP dynamic routing over an IPSec tunnel between two AWS VPCs — the same architectural pattern used in AWS Direct Connect and AWS Site-to-Site VPN with BGP. Built with FRR (Free Range Routing) on EC2 instances, configured from scratch. Demonstrates route propagation, BGP path selection, and dynamic failover without touching the AWS managed networking layer.
 
+> ### Live in AWS right now
+>
+> BGP session has been ESTABLISHED 24/7 for multiple days between AS 65001 and AS 65002 over an IPSec tunnel. **Query the running routers yourself** via the live terminal widget on [jacksalamone.com](https://jacksalamone.com).
+>
+> ![BGP summary on the live widget — ESTABLISHED 3d20h+](screenshots/live-widget-bgp-summary.png)
+>
+> **Full deployment evidence, terminal captures, and additional screenshots:** [`screenshots/`](screenshots/)
+
 ## The Problem
 
 Static routes work in a lab. In production hybrid networks, you need dynamic routing: routes that propagate automatically when new networks are added, paths that reroute around failures, and a protocol that scales to thousands of prefixes without manual maintenance. BGP is that protocol — it's the routing protocol of the internet and the backbone of every enterprise WAN.
