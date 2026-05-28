@@ -1,0 +1,1 @@
+Security Associations (1 up, 0 connecting):      bgp-lab[248]: ESTABLISHED 39 minutes ago, 10.10.1.10[44.193.232.236]...3.214.84.243[3.214.84.243]      bgp-lab{124}:  INSTALLED, TUNNEL, reqid 1, ESP in UDP SPIs: c8f7d9ae_i ce74d618_o      bgp-lab{124}:   10.10.0.0/16 === 10.20.0.0/16 
