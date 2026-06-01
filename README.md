@@ -231,7 +231,7 @@ The new prefix propagates to Cloud FRR's BGP table automatically. This is the va
 | 2× Elastic IPs | $0 |
 | **Total** | **$0** |
 
-## What I Learned
+## Engineering notes
 
 - BGP runs on top of TCP port 179 — the transport layer handles reliability, which is why BGP itself is relatively simple (no flooding, no complex hello mechanisms)
 - `no bgp ebgp-requires-policy` is a FRR safety valve — in production you'd want explicit prefix-list filtering to control what you accept from eBGP peers
